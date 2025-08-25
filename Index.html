@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📄 Конвертер Текст ⇄ JSON</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 70vh;
+        }
+
+        .panel {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-left {
+            border-right: 1px solid #e0e6ed;
+            background: #f8faff;
+        }
+
+        .panel-right {
+            background: #f0fdff;
+        }
+
+        .panel h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-upload {
+            background: rgba(79, 172, 254, 0.1);
+            border: 2px dashed #4facfe;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            background: rgba(79, 172, 254, 0.15);
+            border-color: #2980b9;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload label {
+            cursor: pointer;
+            padding: 10px 20px;
+            background: #4facfe;
+            color: white;
+            border-radius: 25px;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+
+        .file-upload label:hover {
+            background: #2980b9;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .textarea-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            flex: 1;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: none;
+            transition: border-color 0.3s ease;
+            min-height: 400px;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-convert {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .format-help {
+            background: #fff;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .format-help h3 {
+            color: #4facfe;
+            margin-bottom: 10px;
+        }
+
+        .format-help pre {
+            background: #f8faff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(79, 172, 254, 0.1);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+        }
+
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #6c6;
+        }
+
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #999;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.dragover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+            color: #4facfe;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .panel {
+                padding: 20px;
+            }
+            
+            .panel-left {
+                border-right: none;
+                border-bottom: 1px solid #e0e6ed;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Конвертер Текст ⇄ JSON</h1>
+            <p>Импорт файлов и конвертация между текстом и JSON для вопросов</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel: Text Input -->
+            <div class="panel panel-left">
+                <h2>📝 Текст</h2>
+                
+                <div class="file-upload">
+                    <input type="file" id="textFileInput" accept=".txt,.md" />
+                    <label for="textFileInput">📁 Импорт текстового файла</label>
+                    <div class="file-info">Поддерживаются: .txt, .md</div>
+                </div>
+
+                <div class="drop-zone" id="textDropZone">
+                    🎯 Перетащите текстовый файл сюда
+                </div>
+                
+                <div class="format-help">
+                    <h3>Формат текста:</h3>
+                    <pre>Шаלה: Какова минимальная скорость взлета?
+Ответ: 120 узлов
+Объяснение: Согласно авиационным правилам...
+Источник: Раздел 74-76
+
+Вопрос: Следующий вопрос...
+Ответ: Следующий ответ...
+
+# или просто:
+Вопрос: Вопрос без объяснения
+Ответ: Ответ</pre>
+                </div>
+
+                <div class="textarea-container">
+                    <textarea id="textInput" placeholder="Введите или импортируйте вопросы и ответы...
+
+Пример:
+Вопрос: Какова минимальная скорость взлета?
+Ответ: 120 узлов  
+Объяснение: Согласно авиационным правилам
+Источник: Раздел 74-76
+
+Вопрос: Каков минимальный эшелон полета?
+Ответ: 500 футов
+"></textarea>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-convert" onclick="convertToJson()">➡️ Конвертировать в JSON</button>
+                    <button class="btn btn-clear" onclick="clearText()">🗑️ Очистить</button>
+                </div>
+
+                <div class="stats">
+                    <span id="textStats">0 символов</span>
+                    <span id="questionCount">0 вопросов</span>
+                </div>
+
+                <div id="textError" class="message error"></div>
+                <div id="textSuccess" class="message success"></div>
+            </div>
+
+            <!-- Right Panel: JSON Output -->
+            <div class="panel panel-right">
+                <h2>⚙️ JSON</h2>
+                
+                <div class="file-upload">
+                    <input type="file" id="jsonFileInput" accept=".json" />
+                    <label for="jsonFileInput">📁 Импорт JSON файла</label>
+                    <div class="file-info">Поддерживается: .json</div>
+                </div>
+
+                <div class="drop-zone" id="jsonDropZone">
+                    🎯 Перетащите JSON файл сюда
+                </div>
+                
+                <div class="format-help">
+                    <h3>Формат JSON:</h3>
+                    <pre>{
+  "questions": [
+    {
+      "id": 1,
+      "question": "Вопрос...",
+      "answer": "Ответ...",
+      "explanation": "Объяснение...",
+      "source": "Источник..."
+    }
+  ]
+}</pre>
+                </div>
+
+                <div class="textarea-container">
+                    <textarea id="jsonOutput" placeholder="Здесь появится JSON готовый к скачиванию..."></textarea>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-convert" onclick="convertToText()">⬅️ Конвертировать в текст</button>
+                    <button class="btn btn-download" onclick="downloadJson()">⬇️ Скачать JSON</button>
+                    <button class="btn btn-clear" onclick="clearJson()">🗑️ Очистить</button>
+                </div>
+
+                <div class="stats">
+                    <span id="jsonStats">0 символов</span>
+                    <span id="jsonQuestionCount">0 вопросов</span>
+                </div>
+
+                <div id="jsonError" class="message error"></div>
+                <div id="jsonSuccess" class="message success"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const textInput = document.getElementById('textInput');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const textFileInput = document.getElementById('textFileInput');
+        const jsonFileInput = document.getElementById('jsonFileInput');
+        const textDropZone = document.getElementById('textDropZone');
+        const jsonDropZone = document.getElementById('jsonDropZone');
+        const textStats = document.getElementById('textStats');
+        const questionCount = document.getElementById('questionCount');
+        const jsonStats = document.getElementById('jsonStats');
+        const jsonQuestionCount = document.getElementById('jsonQuestionCount');
+        const textError = document.getElementById('textError');
+        const textSuccess = document.getElementById('textSuccess');
+        const jsonError = document.getElementById('jsonError');
+        const jsonSuccess = document.getElementById('jsonSuccess');
+
+        // Event listeners
+        textInput.addEventListener('input', updateTextStats);
+        jsonOutput.addEventListener('input', updateJsonStats);
+        textFileInput.addEventListener('change', handleTextFileImport);
+        jsonFileInput.addEventListener('change', handleJsonFileImport);
+
+        // Drag and drop for text files
+        textDropZone.addEventListener('dragover', handleDragOver);
+        textDropZone.addEventListener('drop', handleTextFileDrop);
+        textDropZone.addEventListener('dragleave', handleDragLeave);
+
+        // Drag and drop for JSON files
+        jsonDropZone.addEventListener('dragover', handleDragOver);
+        jsonDropZone.addEventListener('drop', handleJsonFileDrop);
+        jsonDropZone.addEventListener('dragleave', handleDragLeave);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('dragover');
+        }
+
+        function handleTextFileDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+                    readTextFile(file);
+                } else {
+                    showError(textError, 'Поддерживаются только .txt и .md файлы');
+                }
+            }
+        }
+
+        function handleJsonFileDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.json')) {
+                    readJsonFile(file);
+                } else {
+                    showError(jsonError, 'Поддерживаются только .json файлы');
+                }
+            }
+        }
+
+        function handleTextFileImport(e) {
+            const file = e.target.files[0];
+            if (file) {
+                readTextFile(file);
+            }
+        }
+
+        function handleJsonFileImport(e) {
+            const file = e.target.files[0];
+            if (file) {
+                readJsonFile(file);
+            }
+        }
+
+        function readTextFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                textInput.value = e.target.result;
+                updateTextStats();
+                showSuccess(textSuccess, `Файл "${file.name}" успешно загружен!`);
+            };
+            reader.onerror = function() {
+                showError(textError, 'Ошибка при чтении файла');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function readJsonFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    // Validate JSON
+                    JSON.parse(content);
+                    jsonOutput.value = content;
+                    updateJsonStats();
+                    showSuccess(jsonSuccess, `JSON файл "${file.name}" успешно загружен!`);
+                } catch (error) {
+                    showError(jsonError, `Ошибка в JSON файле: ${error.message}`);
+                }
+            };
+            reader.onerror = function() {
+                showError(jsonError, 'Ошибка при чтении файла');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function updateTextStats() {
+            const text = textInput.value;
+            const charCount = text.length;
+            const questions = parseTextToQuestions(text);
+            
+            textStats.textContent = `${charCount} символов`;
+            questionCount.textContent = `${questions.length} вопросов`;
+        }
+
+        function updateJsonStats() {
+            const text = jsonOutput.value;
+            const charCount = text.length;
+            
+            try {
+                const json = JSON.parse(text);
+                const questions = json.questions || [];
+                jsonStats.textContent = `${charCount} символов`;
+                jsonQuestionCount.textContent = `${questions.length} вопросов`;
+            } catch (e) {
+                jsonStats.textContent = `${charCount} символов`;
+                jsonQuestionCount.textContent = 'JSON невалидный';
+            }
+        }
+
+        function parseTextToQuestions(text) {
+            if (!text.trim()) return [];
+            
+            const questions = [];
+            const blocks = text.split(/\n\s*\n/).filter(block => block.trim());
+            
+            blocks.forEach((block, index) => {
+                const lines = block.trim().split('\n').map(line => line.trim());
+                const question = { id: index + 1, question: '', answer: '', explanation: '', source: '' };
+                
+                lines.forEach(line => {
+                    if (line.match(/^(вопрос|שאלה):/i)) {
+                        question.question = line.replace(/^(вопрос|שאלה):/i, '').trim();
+                    } else if (line.match(/^(ответ|תשובה):/i)) {
+                        question.answer = line.replace(/^(ответ|תשובה):/i, '').trim();
+                    } else if (line.match(/^(объяснение|הסבר):/i)) {
+                        question.explanation = line.replace(/^(объяснение|הסבר):/i, '').trim();
+                    } else if (line.match(/^(источник|מקור):/i)) {
+                        question.source = line.replace(/^(источник|מקור):/i, '').trim();
+                    }
+                });
+                
+                if (question.question && question.answer) {
+                    questions.push(question);
+                }
+            });
+            
+            return questions;
+        }
+
+        function convertToJson() {
+            hideMessages();
+            
+            const text = textInput.value.trim();
+            if (!text) {
+                showError(textError, 'Пожалуйста, введите или импортируйте текст');
+                return;
+            }
+
+            try {
+                const questions = parseTextToQuestions(text);
+                
+                if (questions.length === 0) {
+                    showError(textError, 'Не найдено валидных вопросов. Проверьте формат.');
+                    return;
+                }
+
+                const jsonData = {
+                    questions: questions
+                };
+
+                jsonOutput.value = JSON.stringify(jsonData, null, 2);
+                updateJsonStats();
+                showSuccess(textSuccess, `Создано ${questions.length} вопросов!`);
+            } catch (error) {
+                showError(textError, 'Ошибка конвертации: ' + error.message);
+            }
+        }
+
+        function convertToText() {
+            hideMessages();
+            
+            const jsonText = jsonOutput.value.trim();
+            if (!jsonText) {
+                showError(jsonError, 'Пожалуйста, введите или импортируйте JSON');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(jsonText);
+                const questions = data.questions || [];
+                
+                if (!Array.isArray(questions)) {
+                    showError(jsonError, 'Неверный формат JSON - отсутствует массив questions');
+                    return;
+                }
+
+                let textOutput = '';
+                questions.forEach(q => {
+                    textOutput += `Вопрос: ${q.question || ''}\n`;
+                    textOutput += `Ответ: ${q.answer || ''}\n`;
+                    if (q.explanation) {
+                        textOutput += `Объяснение: ${q.explanation}\n`;
+                    }
+                    if (q.source) {
+                        textOutput += `Источник: ${q.source}\n`;
+                    }
+                    textOutput += '\n';
+                });
+
+                textInput.value = textOutput.trim();
+                updateTextStats();
+                showSuccess(jsonSuccess, `Конвертировано ${questions.length} вопросов!`);
+            } catch (error) {
+                showError(jsonError, 'Ошибка парсинга JSON: ' + error.message);
+            }
+        }
+
+        function downloadJson() {
+            const jsonText = jsonOutput.value.trim();
+            if (!jsonText) {
+                showError(jsonError, 'Нечего скачивать');
+                return;
+            }
+
+            try {
+                // Validate JSON first
+                JSON.parse(jsonText);
+                
+                const blob = new Blob([jsonText], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'questions.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showSuccess(jsonSuccess, 'Файл questions.json скачан!');
+            } catch (error) {
+                showError(jsonError, 'Невозможно скачать - некорректный JSON');
+            }
+        }
+
+        function clearText() {
+            textInput.value = '';
+            updateTextStats();
+            hideMessages();
+        }
+
+        function clearJson() {
+            jsonOutput.value = '';
+            updateJsonStats();
+            hideMessages();
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        function hideMessages() {
+            textError.style.display = 'none';
+            textSuccess.style.display = 'none';
+            jsonError.style.display = 'none';
+            jsonSuccess.style.display = 'none';
+        }
+
+        // Initialize stats
+        updateTextStats();
+        updateJsonStats();
+    </script>
+</body>
+</html>
